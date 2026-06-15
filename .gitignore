@@ -1,0 +1,18 @@
+# Build output
+build/
+out/
+*.exe
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CMakePresets.json
+
+# VS Code - keep this if you want your editor settings shared,
+# remove it if you want to keep VS Code config local only
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini
