@@ -3,6 +3,10 @@
 A command-line tool for calculating realistic medieval city population limits
 based on agricultural output, region geography, and grain transit losses.
 
+
+Inspired by https://thegrainbound.com/
+Most of the formulas came from the Population ceiling worksheet that can be found on the website.
+Made some changes to better fit my personal workflow when making maps.
 ## What It Does
 
 Given a set of geographic regions defined by hex map tiles, the tool calculates:
