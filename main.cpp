@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cmath>
+#include <vector>
+#include <string>
 using namespace std;
 
 int calculate_hex_area(int width) {
@@ -131,13 +133,13 @@ int calculate_grain_surplus(int families, int plot_size, int yield_ratio) {
 }
 
 int calculate_transit_loss(int region_grain) {
-    int input = 0;
+    float input = 0;
     int total_loss = 0;
     cout << "What is the distance to collection point in miles? \n";
     cout << "If the grain surplus goes straight to the city, enter 0\n";
     cin >> input;
     total_loss += (region_grain * 0.002) * input;
-    cout << "What is the distance from collection point to city in miles? \n";
+    cout << "What is the distance from collection point (or directly) to city in miles? \n";
     cin >> input;
     total_loss += (region_grain * 0.002) * input;
     cout << "Does the grain travel by river? (1 for yes, 0 for no) \n";
@@ -151,17 +153,51 @@ int calculate_transit_loss(int region_grain) {
     cout << "How many river crossings on the route? \n";
     cin >> input;
     total_loss += (region_grain * 0.03) * input;
+    cout << "does the grain come from over seas (1 for yes, 0 for no) \n";
+    cin >> input;
+    if(input == 1){
+        total_loss += (region_grain * 0.06);
+    }
+    cout << "does the grain pass through a port city (1 for yes, 0 for no) \n";
+    cin >> input;
+    if(input == 1){
+        total_loss += (region_grain * 0.04);
+        cout << "What percent does the city take? enter as decimal";
+        cin >> input;
+        total_loss += (region_grain * input);
+    }
 
     return total_loss;
 }
 
 int main() {
+    bool running = true;
+
+    while(running){
     int regions = 0;
     int hex_width = 0;
     int total_grain = 0;
+    int bucket_per_person = 10;
+    int total_rural_population = 0;
     int max_population = 0;
-    
+    int input = 0;
+    vector<string> results;
 
+    cout << "Welcome to the Medieval Population Cap Calculator!\n";
+    cout << "This calculator estimates the maximum population that can be supported in a city based on the grain surplus of a given number of regions.\n";
+    cout << "The calculator will ask for the number of regions, the width of the hexes in miles, and various factors that affect grain production and transit losses.\n";
+    cout << "Let's get started!\n";
+    cout << "----------------------------------------------------\n";
+    cout << "Is your city coastal and fishes? (1 for yes, 0 for no) \n";
+    cin >> input;
+    if(input == 1){
+        bucket_per_person -= 2;
+    }
+    cout << "Does your city have access to a salt supply? (1 for yes, 0 for no) \n";
+    cin >> input;
+    if(input == 1){
+        bucket_per_person -= 2;
+    }
     cout << "Enter the number of regions: \n";
     cin >> regions;
     cout << "Enter the width of the hexes in miles: \n";
@@ -177,31 +213,58 @@ int main() {
         int plot_size = 0;
         int region_grain = 0;
         int lost_grain = 0;
-
+        //Hexs and area
         cout << "Enter number of hexs in region " << i+1 << ": ";
         cin >> hexs;
         region_area = hexs * calculate_hex_area(hex_width);
         cout << "Area of region " << i+1 << ": " << region_area << " square miles\n";
         hectares = calculate_hectares(region_area);
+        //Hexs and area output
         cout << "Area of region in hectares " << i+1 << ": " << hectares << "\n";
+        results.push_back("Region " + to_string(i+1) + ": " + to_string(hectares) + " hectares\n");
 
+        //applying region type and yield ratio
+        //then calculating farm families,
         region_type = apply_region_type(hectares, yield_ratio);
         plot_size = set_plot_size(region_type);
         farm_families = calculate_farm_families(hectares, plot_size);
+        
+        // farm families, rural population output
         cout << "number of farm families in region " << i+1 << ": " << farm_families << "\n";
+        results.push_back("Region " + to_string(i+1) + ": " + to_string(farm_families) + " farm families\n");
         cout << "total rural population in region " << i+1 << ": " << farm_families *5 << "\n";
+        total_rural_population += farm_families * 5;
+       
+        // calculating grain surplus, transit loss, and net grain surplus for the region
         region_grain = calculate_grain_surplus(farm_families, plot_size, yield_ratio);
         cout << "grain surplus in region " << i+1 << ": " << region_grain << "\n";
+        results.push_back("Region " + to_string(i+1) + ": " + to_string(region_grain) + " grain surplus\n");
         lost_grain = calculate_transit_loss(region_grain);
         cout << "grain lost during transit in region " << i+1 << ": " << lost_grain << "\n";
+        results.push_back("Region " + to_string(i+1) + ": " + to_string(lost_grain) + " grain lost during transit\n");
         region_grain -= lost_grain;
 
         total_grain += region_grain;
     }
+    
     total_grain = total_grain - (total_grain * 0.15); // 15% to granaries and reserves
     cout << "Total grain surplus: " << total_grain << "\n";
-    max_population = (total_grain / 10);
+    results.push_back("Total grain surplus: " + to_string(total_grain) + "\n");
+    cout << "Total rural population: " << total_rural_population << "\n";
+    results.push_back("Total rural population: " + to_string(total_rural_population) + "\n");
+    max_population = (total_grain / bucket_per_person);
     cout << "Maximum population that can be supported: " << max_population << "\n";
+    results.push_back("Maximum population that can be supported: " + to_string(max_population) + "\n");
 
-    return 0;
+    for (int i = 0; i < results.size(); i++){
+        cout << results[i];
+    }
+    cout << "Do you want to run the calculator again? (1 for yes, 0 for no) \n";
+    cin >> input;
+    if(input == 0){
+        running = false;
+    }
+    
+}
+return 0;
 }
